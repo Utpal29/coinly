@@ -1,54 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import dummyTransactions from '../data/dummyTransactions';
+import { useAuthContext } from '../contexts/AuthContext';
+import { getTransactionById, updateTransaction } from '../lib/api';
 
 function EditTransaction() {
   const navigate = useNavigate();
   const { id } = useParams();
-  
+  const { user } = useAuthContext();
   const [formData, setFormData] = useState({
-    description: '',
     amount: '',
     type: 'expense',
     category: '',
+    description: '',
     date: new Date().toISOString().split('T')[0],
     notes: ''
   });
-
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-
-  const categories = [
-    'Food & Dining',
-    'Housing',
-    'Transportation',
-    'Utilities',
-    'Health & Fitness',
-    'Entertainment',
-    'Shopping',
-    'Education',
-    'Personal Care',
-    'Gifts & Donations',
-    'Travel',
-    'Other'
-  ];
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Find the transaction to edit
-    const transaction = dummyTransactions.find(t => t.id === parseInt(id));
-    
-    if (transaction) {
-      setFormData({
-        description: transaction.description,
-        amount: Math.abs(transaction.amount).toString(),
-        type: transaction.type,
-        category: transaction.category,
-        date: transaction.date,
-        notes: transaction.notes || ''
-      });
-    }
-    setIsLoading(false);
-  }, [id]);
+    const fetchTransaction = async () => {
+      try {
+        const transaction = await getTransactionById(id);
+        
+        // Verify the transaction belongs to the current user
+        if (transaction.user_id !== user.id) {
+          throw new Error('Unauthorized access to transaction');
+        }
+
+        setFormData({
+          amount: Math.abs(transaction.amount).toString(),
+          type: transaction.amount >= 0 ? 'income' : 'expense',
+          category: transaction.category,
+          description: transaction.description,
+          date: transaction.date,
+          notes: transaction.notes || ''
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransaction();
+  }, [id, user.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,235 +53,211 @@ function EditTransaction() {
       ...prevState,
       [name]: value
     }));
-
     // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prevState => ({
-        ...prevState,
-        [name]: ''
-      }));
-    }
+    if (error) setError(null);
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-
-    if (!formData.amount) {
-      newErrors.amount = 'Amount is required';
-    } else if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Please enter a valid amount';
-    }
-
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
-    }
-
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // TODO: Implement actual transaction update logic
-      console.log('Updated transaction:', {
-        id: parseInt(id),
-        ...formData,
-        amount: formData.type === 'expense' 
-          ? -Math.abs(parseFloat(formData.amount))
-          : Math.abs(parseFloat(formData.amount))
-      });
-      
-      // Navigate back to dashboard after successful submission
+    setSaving(true);
+    setError(null);
+
+    try {
+      // Convert amount to number and validate
+      const amount = parseFloat(formData.amount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error('Please enter a valid amount greater than 0');
+      }
+
+      // Create transaction object
+      const transaction = {
+        amount: formData.type === 'expense' ? -amount : amount,
+        type: formData.type,
+        category: formData.category,
+        description: formData.description,
+        date: formData.date,
+        notes: formData.notes
+      };
+
+      // Update transaction
+      await updateTransaction(id, transaction);
+
+      // Redirect to dashboard on success
       navigate('/dashboard');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Edit Transaction</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Update the transaction details below
-            </p>
-          </div>
+      <div className="max-w-md mx-auto">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Edit Transaction
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Update the details of your transaction
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Transaction Type */}
+        <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Amount */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transaction Type
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                Amount
               </label>
-              <div className="flex space-x-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="expense"
-                    checked={formData.type === 'expense'}
-                    onChange={handleChange}
-                    className="form-radio h-4 w-4 text-blue-600"
-                  />
-                  <span className="ml-2 text-gray-700">Expense</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="income"
-                    checked={formData.type === 'income'}
-                    onChange={handleChange}
-                    className="form-radio h-4 w-4 text-blue-600"
-                  />
-                  <span className="ml-2 text-gray-700">Income</span>
-                </label>
+              <div className="mt-1">
+                <input
+                  type="number"
+                  name="amount"
+                  id="amount"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={formData.amount}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Type */}
+            <div>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                Type
+              </label>
+              <div className="mt-1">
+                <select
+                  id="type"
+                  name="type"
+                  required
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Category */}
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                Category
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  name="category"
+                  id="category"
+                  required
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                 Description
               </label>
-              <input
-                type="text"
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
-                  errors.description ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                placeholder="Enter transaction description"
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-              )}
-            </div>
-
-            {/* Amount */}
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-                Amount
-              </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
-                </div>
+              <div className="mt-1">
                 <input
-                  type="number"
-                  id="amount"
-                  name="amount"
-                  value={formData.amount}
+                  type="text"
+                  name="description"
+                  id="description"
+                  required
+                  value={formData.description}
                   onChange={handleChange}
-                  step="0.01"
-                  min="0"
-                  className={`appearance-none rounded-lg relative block w-full pl-7 pr-3 py-2 border ${
-                    errors.amount ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  placeholder="0.00"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              {errors.amount && (
-                <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
-              )}
-            </div>
-
-            {/* Category */}
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
-                  errors.category ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              >
-                <option value="">Select a category</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-              )}
             </div>
 
             {/* Date */}
             <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700">
                 Date
               </label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
-                  errors.date ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              />
-              {errors.date && (
-                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-              )}
+              <div className="mt-1">
+                <input
+                  type="date"
+                  name="date"
+                  id="date"
+                  required
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
             </div>
 
             {/* Notes */}
             <div>
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
                 Notes (Optional)
               </label>
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                rows="3"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Add any additional notes here"
-              />
+              <div className="mt-1">
+                <textarea
+                  name="notes"
+                  id="notes"
+                  rows={3}
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end space-x-4">
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      {error}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={saving}
+                className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  saving ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                Update Transaction
+                {saving ? (
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : null}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>
