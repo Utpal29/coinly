@@ -1,12 +1,119 @@
-# React + Vite
+# Coinly - Personal Finance Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Coinly Logo](/public/logo.png)
 
-Currently, two official plugins are available:
+Coinly is a modern, user-friendly personal finance tracking application that helps you manage your income and expenses with ease. Built with React and Supabase, it offers a beautiful interface and powerful features to keep your finances organized.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🌟 Features
 
-## Expanding the ESLint configuration
+- **Dashboard Overview**: Get a quick snapshot of your financial status
+- **Transaction Management**: Add, edit, and delete income and expense transactions
+- **Calendar View**: Visualize your daily income and expenses in a calendar format
+- **Insights**: Analyze your spending patterns and financial trends
+- **User Authentication**: Secure login and signup system
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Dark Mode**: Beautiful dark theme for comfortable viewing
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Tech Stack
+
+- **Frontend**: React.js with Vite
+- **Styling**: Tailwind CSS
+- **Authentication**: Supabase Auth
+- **Database**: Supabase
+- **Date Handling**: date-fns
+- **Icons**: Heroicons
+
+## 🛠️ Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/coinly-vite.git
+   cd coinly-vite
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 📱 Pages
+
+- **Login/Signup**: User authentication
+- **Dashboard**: Overview of finances
+- **Add Transaction**: Add new income or expense
+- **Edit Transaction**: Modify existing transactions
+- **Calendar View**: Daily transaction calendar
+- **Insights**: Financial analytics
+- **Profile**: User profile management
+- **Support**: Support the development
+
+## 🎨 Features in Detail
+
+### Dashboard
+- Total balance overview
+- Recent transactions
+- Income and expense summaries
+- Quick action buttons
+
+### Calendar View
+- Monthly calendar layout
+- Daily income and expense display
+- Color-coded transactions
+- Easy navigation between months
+
+### Transaction Management
+- Add new transactions
+- Edit existing transactions
+- Delete transactions
+- Categorize transactions
+
+### Insights
+- Spending patterns
+- Income analysis
+- Monthly comparisons
+- Visual charts and graphs
+
+## 🔒 Security
+
+- Secure authentication with Supabase
+- Protected routes
+- Secure data storage
+- Environment variable protection
+
+## 🎯 Future Enhancements
+
+- [ ] Budget planning feature
+- [ ] Export data functionality
+- [ ] Multiple currency support
+- [ ] Custom categories
+- [ ] Recurring transactions
+- [ ] Mobile app version
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 👨‍💻 Author
+
+- **Utpal Prajapati**
+  - Portfolio: [utpal.netlify.app](https://utpal.netlify.app)
+  - GitHub: [@utpal29](https://github.com/utpal29)
+
+
+
+
+
+---
+
+Made with ❤️ by Utpal Prajapati
