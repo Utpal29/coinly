@@ -4,6 +4,20 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { insertTransaction } from '../lib/api';
 import { supabase } from '../lib/supabase';
 
+// Currency symbols mapping
+const CURRENCY_SYMBOLS = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  AUD: '$',
+  CAD: '$',
+  CHF: 'Fr',
+  CNY: '¥',
+  INR: '₹',
+  SGD: '$'
+};
+
 // Default categories
 const DEFAULT_CATEGORIES = {
   income: ['Salary', 'Freelance', 'Investment', 'Business', 'Other Income'],
@@ -28,6 +42,10 @@ function AddTransaction() {
   const [categories, setCategories] = useState([]);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Get user's preferred currency
+  const userCurrency = user?.user_metadata?.currency || 'USD';
+  const currencySymbol = CURRENCY_SYMBOLS[userCurrency] || '$';
 
   useEffect(() => {
     setIsVisible(true);
@@ -178,44 +196,67 @@ function AddTransaction() {
 
         <div className={`mt-8 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg py-8 px-4 sm:px-10 transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Amount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Transaction Type
+              </label>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => handleChange({ target: { name: 'type', value: 'income' } })}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 text-center font-medium transition-all duration-200 ${
+                    formData.type === 'income'
+                      ? 'border-green-400 bg-green-400/10 text-green-400'
+                      : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>Income</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange({ target: { name: 'type', value: 'expense' } })}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 text-center font-medium transition-all duration-200 ${
+                    formData.type === 'expense'
+                      ? 'border-red-400 bg-red-400/10 text-red-400'
+                      : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                    <span>Expense</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-300">
                 Amount
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative rounded-lg shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-400 sm:text-sm">{currencySymbol}</span>
+                </div>
                 <input
                   type="number"
                   name="amount"
                   id="amount"
-                  step="0.01"
-                  min="0"
-                  required
                   value={formData.amount}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-gray-200"
+                  className="block w-full pl-7 pr-12 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
                 />
               </div>
-            </div>
-
-            {/* Type */}
-            <div>
-              <label htmlFor="type" className="block text-sm font-medium text-gray-300">
-                Type
-              </label>
-              <div className="mt-1">
-                <select
-                  id="type"
-                  name="type"
-                  required
-                  value={formData.type}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-gray-200"
-                >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
-              </div>
+              {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
             </div>
 
             {/* Category */}
@@ -327,18 +368,6 @@ function AddTransaction() {
                 />
               </div>
             </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-400/10 border border-red-400/20 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-400">
-                      {error}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="flex items-center justify-between">
               <button

@@ -17,8 +17,7 @@ function Profile() {
   const [userData, setUserData] = useState({
     name: user?.user_metadata?.full_name || '',
     email: user?.email || '',
-    currency: user?.user_metadata?.currency || 'USD',
-    theme: user?.user_metadata?.theme || 'dark'
+    currency: user?.user_metadata?.currency || 'USD'
   });
 
   const [formData, setFormData] = useState(userData);
@@ -47,14 +46,12 @@ function Profile() {
       setUserData({
         name: user.user_metadata?.full_name || '',
         email: user.email || '',
-        currency: user.user_metadata?.currency || 'USD',
-        theme: user.user_metadata?.theme || 'dark'
+        currency: user.user_metadata?.currency || 'USD'
       });
       setFormData({
         name: user.user_metadata?.full_name || '',
         email: user.email || '',
-        currency: user.user_metadata?.currency || 'USD',
-        theme: user.user_metadata?.theme || 'dark'
+        currency: user.user_metadata?.currency || 'USD'
       });
     }
   }, [user]);
@@ -101,8 +98,7 @@ function Profile() {
       try {
         const { error } = await updateUserProfile({
           full_name: formData.name,
-          currency: formData.currency,
-          theme: formData.theme
+          currency: formData.currency
         });
 
         if (error) throw error;
@@ -403,25 +399,6 @@ function Profile() {
             </p>
           </div>
 
-          <div>
-            <label htmlFor="theme" className="block text-sm font-medium text-gray-300">
-              Theme
-            </label>
-            <select
-              id="theme"
-              name="theme"
-              value={formData.theme}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
-            >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-            <p className="mt-1 text-sm text-gray-400">
-              Choose your preferred color scheme
-            </p>
-          </div>
-
           <div className="flex justify-end">
             <button
               type="button"
@@ -629,73 +606,66 @@ function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
-          <Link
-            to="/dashboard"
-            className="text-gray-300 hover:text-white transition-colors duration-200"
-          >
-            Back to Dashboard
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className={`transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg overflow-hidden">
+            {/* Tabs */}
+            <div className="border-b border-white/10">
+              <div className="flex divide-x divide-white/10">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'profile'
+                      ? 'bg-white/10 text-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-400 hover:bg-white/5'
+                  }`}
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={() => setActiveTab('preferences')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'preferences'
+                      ? 'bg-white/10 text-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-400 hover:bg-white/5'
+                  }`}
+                >
+                  Preferences
+                </button>
+                <button
+                  onClick={() => setActiveTab('security')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                    activeTab === 'security'
+                      ? 'bg-white/10 text-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-400 hover:bg-white/5'
+                  }`}
+                >
+                  Security
+                </button>
+              </div>
+            </div>
 
-        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg overflow-hidden">
-          <div className="border-b border-white/10">
-            <nav className="flex px-4">
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`w-1/3 py-4 px-4 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'profile'
-                    ? 'border-yellow-400 text-yellow-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                Profile
-              </button>
-              <button
-                onClick={() => setActiveTab('preferences')}
-                className={`w-1/3 py-4 px-4 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'preferences'
-                    ? 'border-yellow-400 text-yellow-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                Preferences
-              </button>
-              <button
-                onClick={() => setActiveTab('security')}
-                className={`w-1/3 py-4 px-4 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'security'
-                    ? 'border-yellow-400 text-yellow-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                Security
-              </button>
-            </nav>
+            <div className="p-6">
+              {activeTab === 'profile' && renderProfileTab()}
+              {activeTab === 'preferences' && renderPreferencesTab()}
+              {activeTab === 'security' && renderSecurityTab()}
+            </div>
           </div>
 
-          <div className="p-6">
-            {activeTab === 'profile' && renderProfileTab()}
-            {activeTab === 'preferences' && renderPreferencesTab()}
-            {activeTab === 'security' && renderSecurityTab()}
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-gray-300 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+            </button>
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-gray-300 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoggingOut ? 'Signing out...' : 'Sign Out'}
-          </button>
-        </div>
+        {showDeleteModal && renderDeleteAccountModal()}
       </div>
-
-      {showDeleteModal && renderDeleteAccountModal()}
     </div>
   );
 }
