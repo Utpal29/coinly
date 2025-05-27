@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -10,6 +11,8 @@ import EditTransaction from './pages/EditTransaction';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import Insights from './pages/Insights';
+import CalendarView from './pages/CalendarView';
+import Support from './pages/Support';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
@@ -20,10 +23,13 @@ function ProtectedRoute({ children }) {
   }
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      {children}
-    </>
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
   );
 }
 
@@ -77,6 +83,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Insights />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <CalendarView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <ProtectedRoute>
+            <Support />
           </ProtectedRoute>
         }
       />
