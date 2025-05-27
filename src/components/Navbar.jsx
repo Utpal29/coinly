@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 
 function Navbar() {
   const { user } = useAuthContext();
   const location = useLocation();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -17,29 +22,25 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white/10 backdrop-blur-lg border-b border-white/20 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center space-x-2">
-              <svg
-                className="h-8 w-8 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-xl font-bold text-gray-900">Coinly</span>
+            <Link 
+              to="/dashboard" 
+              className="flex items-center space-x-2 group transition-transform duration-200 hover:scale-105"
+            >
+              <img
+                src="/logo.png"
+                alt="Coinly Logo"
+                className="h-8 w-8 object-contain"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+                Coinly
+              </span>
             </Link>
-            <div className="ml-8 flex items-center">
-              <span className="text-lg font-medium text-gray-500">
+            <div className={`ml-8 flex items-center transform transition-all duration-500 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'}`}>
+              <span className="text-lg font-medium text-gray-200">
                 {getPageTitle()}
               </span>
             </div>
@@ -48,10 +49,10 @@ function Navbar() {
           <div className="flex items-center space-x-4">
             <Link
               to="/dashboard"
-              className={`p-2 rounded-md ${
+              className={`p-2 rounded-lg transition-all duration-200 ${
                 location.pathname === '/dashboard'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-yellow-400 bg-yellow-400/10'
+                  : 'text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10'
               }`}
             >
               <svg
@@ -72,10 +73,10 @@ function Navbar() {
 
             <Link
               to="/insights"
-              className={`p-2 rounded-md ${
+              className={`p-2 rounded-lg transition-all duration-200 ${
                 location.pathname === '/insights'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-yellow-400 bg-yellow-400/10'
+                  : 'text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10'
               }`}
             >
               <svg
@@ -96,10 +97,10 @@ function Navbar() {
 
             <Link
               to="/profile"
-              className={`p-2 rounded-md ${
+              className={`p-2 rounded-lg transition-all duration-200 ${
                 location.pathname === '/profile'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-yellow-400 bg-yellow-400/10'
+                  : 'text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10'
               }`}
             >
               <svg
@@ -118,10 +119,10 @@ function Navbar() {
               </svg>
             </Link>
 
-            <div className="h-6 w-px bg-gray-200" />
+            <div className="h-6 w-px bg-gray-600" />
 
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700 mr-2">
+            <div className={`flex items-center transform transition-all duration-500 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}>
+              <span className="text-sm text-gray-300">
                 {user?.user_metadata?.full_name || user?.email}
               </span>
             </div>

@@ -10,6 +10,7 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   
   const [userData, setUserData] = useState({
     name: user?.user_metadata?.full_name || '',
@@ -21,6 +22,10 @@ function Profile() {
 
   const [formData, setFormData] = useState(userData);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -114,25 +119,25 @@ function Profile() {
   };
 
   const renderProfileTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-sm">
-        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
+    <div className={`space-y-6 transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+      <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg">
+        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white">
           <span className="text-2xl font-medium">
             {userData.name.split(' ').map(n => n[0]).join('')}
           </span>
         </div>
         <div>
-          <h3 className="text-lg font-medium text-gray-900">{userData.name}</h3>
-          <p className="text-sm text-gray-500">{userData.email}</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-medium text-white">{userData.name}</h3>
+          <p className="text-sm text-gray-300">{userData.email}</p>
+          <p className="text-sm text-gray-400 mt-1">
             Member since {new Date(user?.created_at).toLocaleDateString()}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/20">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
             Full Name
           </label>
           <input
@@ -142,15 +147,15 @@ function Profile() {
             value={formData.name}
             onChange={handleChange}
             disabled={!isEditing}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 ${
-              !isEditing ? 'bg-gray-50' : ''
+            className={`mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white ${
+              !isEditing ? 'bg-white/5' : ''
             }`}
           />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+          {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300">
             Email Address
           </label>
           <input
@@ -160,13 +165,13 @@ function Profile() {
             value={formData.email}
             onChange={handleChange}
             disabled={true}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm text-gray-400"
           />
-          <p className="mt-1 text-sm text-gray-500">Email cannot be changed</p>
+          <p className="mt-1 text-sm text-gray-400">Email cannot be changed</p>
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
             Phone Number
           </label>
           <input
@@ -177,15 +182,15 @@ function Profile() {
             onChange={handleChange}
             disabled={!isEditing}
             placeholder="+1 (555) 555-5555"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 ${
-              !isEditing ? 'bg-gray-50' : ''
+            className={`mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white ${
+              !isEditing ? 'bg-white/5' : ''
             }`}
           />
-          {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+          {errors.phone && <p className="mt-1 text-sm text-red-400">{errors.phone}</p>}
         </div>
 
         {errors.submit && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="rounded-lg bg-red-400/10 p-4 border border-red-400/20">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -193,7 +198,7 @@ function Profile() {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{errors.submit}</p>
+                <p className="text-sm text-red-400">{errors.submit}</p>
               </div>
             </div>
           </div>
@@ -207,14 +212,14 @@ function Profile() {
                 setFormData(userData);
                 setIsEditing(false);
               }}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-gray-300 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -223,7 +228,7 @@ function Profile() {
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-gray-300 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400"
           >
             Edit Profile
           </button>
@@ -233,11 +238,11 @@ function Profile() {
   );
 
   const renderPreferencesTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className={`space-y-6 transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+      <div className="bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/20">
         <div className="space-y-6">
           <div>
-            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-300">
               Currency
             </label>
             <select
@@ -245,7 +250,7 @@ function Profile() {
               name="currency"
               value={formData.currency}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+              className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
             >
               <option value="USD">USD ($)</option>
               <option value="CAD">CAD ($)</option>
@@ -253,13 +258,13 @@ function Profile() {
               <option value="GBP">GBP (£)</option>
               <option value="JPY">JPY (¥)</option>
             </select>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-400">
               This will be used for all your transactions and reports
             </p>
           </div>
 
           <div>
-            <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="theme" className="block text-sm font-medium text-gray-300">
               Theme
             </label>
             <select
@@ -267,13 +272,13 @@ function Profile() {
               name="theme"
               value={formData.theme}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+              className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
             >
               <option value="light">Light</option>
               <option value="dark">Dark</option>
               <option value="system">System</option>
             </select>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-400">
               Choose your preferred color scheme
             </p>
           </div>
@@ -283,7 +288,7 @@ function Profile() {
               type="button"
               onClick={handleSubmit}
               disabled={isSaving}
-              className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save Preferences'}
             </button>
@@ -294,57 +299,57 @@ function Profile() {
   );
 
   const renderSecurityTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className={`space-y-6 transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+      <div className="bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/20">
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="text-lg font-medium text-white">Change Password</h3>
+            <p className="mt-1 text-sm text-gray-400">
               Update your password to keep your account secure
             </p>
           </div>
 
           <form className="space-y-6">
             <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300">
                 Current Password
               </label>
               <input
                 type="password"
                 id="currentPassword"
                 name="currentPassword"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300">
                 New Password
               </label>
               <input
                 type="password"
                 id="newPassword"
                 name="newPassword"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
                 Confirm New Password
               </label>
               <input
                 type="password"
                 id="confirmPassword"
                 name="confirmPassword"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg shadow-sm focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-white"
               />
             </div>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400"
               >
                 Update Password
               </button>
@@ -353,11 +358,11 @@ function Profile() {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/20">
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Delete Account</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="text-lg font-medium text-white">Delete Account</h3>
+            <p className="mt-1 text-sm text-gray-400">
               Permanently delete your account and all associated data
             </p>
           </div>
@@ -365,7 +370,7 @@ function Profile() {
           <div className="flex justify-end">
             <button
               type="button"
-              className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400"
             >
               Delete Account
             </button>
@@ -376,47 +381,47 @@ function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+          <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
           <Link
             to="/dashboard"
-            className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            className="text-gray-300 hover:text-white transition-colors duration-200"
           >
             Back to Dashboard
           </Link>
         </div>
 
-        <div className="bg-white shadow rounded-lg">
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg overflow-hidden">
+          <div className="border-b border-white/10">
+            <nav className="flex">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-yellow-400 text-yellow-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
                 Profile
               </button>
               <button
                 onClick={() => setActiveTab('preferences')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'preferences'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-yellow-400 text-yellow-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
                 Preferences
               </button>
               <button
                 onClick={() => setActiveTab('security')}
-                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'security'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-yellow-400 text-yellow-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
                 Security
@@ -435,7 +440,7 @@ function Profile() {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-gray-300 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? 'Signing out...' : 'Sign Out'}
           </button>
