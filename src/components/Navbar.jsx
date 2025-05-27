@@ -119,6 +119,30 @@ function Navbar() {
               </svg>
             </Link>
 
+            <Link
+              to="/add-transaction"
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                location.pathname === '/add-transaction'
+                  ? 'text-yellow-400 bg-yellow-400/10'
+                  : 'text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10'
+              }`}
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </Link>
+
             <div className="h-6 w-px bg-gray-600" />
 
             <div className={`flex items-center transform transition-all duration-500 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}>

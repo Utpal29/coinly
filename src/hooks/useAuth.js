@@ -66,11 +66,36 @@ export function useAuth() {
     }
   };
 
+  const updateUserProfile = async (updates) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: updates
+      });
+
+      if (error) throw error;
+      
+      // Update local user state with new metadata
+      setUser(prevUser => ({
+        ...prevUser,
+        user_metadata: {
+          ...prevUser.user_metadata,
+          ...updates
+        }
+      }));
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error updating profile:', error.message);
+      return { data: null, error };
+    }
+  };
+
   return {
     user,
     loading,
     signUp,
     signIn,
     signOut,
+    updateUserProfile,
   };
 } 

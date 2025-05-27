@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { getTransactions, deleteTransaction } from '../lib/api';
 import { supabase } from '../lib/supabase';
+import { formatCurrency, formatCurrencyWithSign } from '../utils/currency';
 
 function Dashboard() {
   const { user } = useAuthContext();
@@ -20,6 +21,10 @@ function Dashboard() {
   const [isVisible, setIsVisible] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+
+  // Get user's preferred currency
+  const userCurrency = user?.user_metadata?.currency || 'USD';
 
   useEffect(() => {
     setIsVisible(true);
@@ -96,22 +101,25 @@ function Dashboard() {
       case 'today':
         filtered = filtered.filter(t => {
           const transDate = new Date(t.date);
-          return transDate >= today;
+          return transDate.toDateString() === today.toDateString();
         });
         break;
       case 'thisWeek':
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
         filtered = filtered.filter(t => {
           const transDate = new Date(t.date);
-          return transDate >= weekStart;
+          return transDate >= weekStart && transDate <= weekEnd;
         });
         break;
       case 'thisMonth':
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         filtered = filtered.filter(t => {
           const transDate = new Date(t.date);
-          return transDate >= monthStart;
+          return transDate >= monthStart && transDate <= monthEnd;
         });
         break;
       case 'custom':
@@ -157,18 +165,21 @@ function Dashboard() {
   const balance = totalIncome - totalExpenses;
 
   // Group transactions by date
-  const groupedTransactions = transactions.reduce((groups, transaction) => {
-    const date = new Date(transaction.date).toLocaleDateString('en-US', {
+  const filteredTransactions = getFilteredTransactions();
+  const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
+    const date = new Date(transaction.date);
+    const formattedDate = date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'UTC'  // Use UTC to avoid timezone issues
     });
     
-    if (!groups[date]) {
-      groups[date] = [];
+    if (!groups[formattedDate]) {
+      groups[formattedDate] = [];
     }
-    groups[date].push(transaction);
+    groups[formattedDate].push(transaction);
     return groups;
   }, {});
 
@@ -176,6 +187,9 @@ function Dashboard() {
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => {
     return new Date(b) - new Date(a);
   });
+
+  // Get limited dates for recent transactions
+  const displayDates = showAllTransactions ? sortedDates : sortedDates.slice(0, 3);
 
   if (loading) {
     return (
@@ -256,7 +270,7 @@ function Dashboard() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-300 truncate">Current Month Balance</dt>
-                    <dd className="text-lg font-medium text-white">${balance.toFixed(2)}</dd>
+                    <dd className="text-lg font-medium text-white">{formatCurrency(balance, userCurrency)}</dd>
                   </dl>
                 </div>
               </div>
@@ -275,7 +289,7 @@ function Dashboard() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-300 truncate">Current Month Income</dt>
-                    <dd className="text-lg font-medium text-green-400">${totalIncome.toFixed(2)}</dd>
+                    <dd className="text-lg font-medium text-green-400">{formatCurrency(totalIncome, userCurrency)}</dd>
                   </dl>
                 </div>
               </div>
@@ -294,7 +308,7 @@ function Dashboard() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-300 truncate">Current Month Expenses</dt>
-                    <dd className="text-lg font-medium text-red-400">${totalExpenses.toFixed(2)}</dd>
+                    <dd className="text-lg font-medium text-red-400">{formatCurrency(totalExpenses, userCurrency)}</dd>
                   </dl>
                 </div>
               </div>
@@ -382,79 +396,119 @@ function Dashboard() {
         <div className={`transform transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium text-gray-200">Recent Transactions</h2>
-            <Link
-              to="/add-transaction"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors duration-200"
-            >
-              Add Transaction
-            </Link>
+            <div className="flex items-center space-x-4">
+              {sortedDates.length > 3 && (
+                <button
+                  onClick={() => setShowAllTransactions(!showAllTransactions)}
+                  className="inline-flex items-center px-4 py-2 border border-white/10 rounded-lg text-sm font-medium text-gray-300 hover:text-yellow-400 hover:border-yellow-400/50 transition-colors duration-200"
+                >
+                  {showAllTransactions ? 'Show Recent Transactions' : 'View All Transactions'}
+                  <svg 
+                    className={`ml-2 h-4 w-4 transition-transform duration-200 ${showAllTransactions ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
+              <Link
+                to="/add-transaction"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors duration-200"
+              >
+                Add Transaction
+              </Link>
+            </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg overflow-hidden">
-            <div className="divide-y divide-white/10">
-              {sortedDates.map((date) => (
-                <div key={date} className="bg-white/5">
-                  <div className="px-6 py-3 bg-white/5">
-                    <h3 className="text-sm font-medium text-gray-400">{date}</h3>
-                  </div>
-                  <div className="divide-y divide-white/10">
-                    {groupedTransactions[date].map((transaction) => (
-                      <div key={transaction.id} className="px-6 py-4 hover:bg-white/5 transition-colors duration-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                transaction.amount >= 0 
-                                  ? 'bg-green-400/10 text-green-400' 
-                                  : 'bg-red-400/10 text-red-400'
-                              }`}>
-                                {transaction.category}
-                              </span>
-                              <p className="text-sm font-medium text-white truncate">
-                                {transaction.description}
-                              </p>
+            {sortedDates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <svg
+                  className="h-12 w-12 text-gray-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-200 mb-2">No Transactions Yet</h3>
+                <p className="text-gray-400 text-center max-w-sm">
+                  Start tracking your finances by adding your first transaction. Click the "Add Transaction" button above to get started.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/10">
+                {displayDates.map((date) => (
+                  <div key={date} className="bg-white/5">
+                    <div className="px-6 py-3 bg-white/5">
+                      <h3 className="text-sm font-medium text-gray-400">{date}</h3>
+                    </div>
+                    <div className="divide-y divide-white/10">
+                      {groupedTransactions[date].map((transaction) => (
+                        <div key={transaction.id} className="px-6 py-4 hover:bg-white/5 transition-colors duration-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-3">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  transaction.amount >= 0 
+                                    ? 'bg-green-400/10 text-green-400' 
+                                    : 'bg-red-400/10 text-red-400'
+                                }`}>
+                                  {transaction.category}
+                                </span>
+                                <p className="text-sm font-medium text-white truncate">
+                                  {transaction.description}
+                                </p>
+                              </div>
+                              {transaction.notes && (
+                                <p className="mt-1 text-sm text-gray-400 truncate">
+                                  {transaction.notes}
+                                </p>
+                              )}
                             </div>
-                            {transaction.notes && (
-                              <p className="mt-1 text-sm text-gray-400 truncate">
-                                {transaction.notes}
+                            <div className="ml-4 flex items-center space-x-4">
+                              <p className={`text-sm font-medium ${
+                                transaction.amount >= 0 ? 'text-green-400' : 'text-red-400'
+                              }`}>
+                                {formatCurrencyWithSign(transaction.amount, userCurrency)}
                               </p>
-                            )}
-                          </div>
-                          <div className="ml-4 flex items-center space-x-4">
-                            <p className={`text-sm font-medium ${
-                              transaction.amount >= 0 ? 'text-green-400' : 'text-red-400'
-                            }`}>
-                              {transaction.amount >= 0 ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
-                            </p>
-                            <div className="flex items-center space-x-2">
-                              <Link
-                                to={`/edit-transaction/${transaction.id}`}
-                                className="text-gray-400 hover:text-yellow-400 transition-colors duration-200"
-                              >
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </Link>
-                              <button
-                                onClick={() => handleDelete(transaction.id)}
-                                disabled={deletingId === transaction.id}
-                                className={`text-gray-400 hover:text-red-400 transition-colors duration-200 ${
-                                  deletingId === transaction.id ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                              >
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              <div className="flex items-center space-x-2">
+                                <Link
+                                  to={`/edit-transaction/${transaction.id}`}
+                                  className="text-gray-400 hover:text-yellow-400 transition-colors duration-200"
+                                >
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </Link>
+                                <button
+                                  onClick={() => handleDelete(transaction.id)}
+                                  disabled={deletingId === transaction.id}
+                                  className={`text-gray-400 hover:text-red-400 transition-colors duration-200 ${
+                                    deletingId === transaction.id ? 'opacity-50 cursor-not-allowed' : ''
+                                  }`}
+                                >
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

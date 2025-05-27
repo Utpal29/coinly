@@ -4,6 +4,7 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { getTransactions } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from 'date-fns';
+import { formatCurrency } from '../utils/currency';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -48,10 +49,13 @@ function Insights() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState('last6Months');
+  const [dateRange, setDateRange] = useState('last30Days');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Get user's preferred currency
+  const userCurrency = user?.user_metadata?.currency || 'USD';
 
   useEffect(() => {
     setIsVisible(true);
@@ -315,7 +319,7 @@ function Insights() {
                         label: (context) => {
                           const label = context.label || '';
                           const value = context.raw || 0;
-                          return `${label}: $${value.toFixed(2)}`;
+                          return `${label}: ${formatCurrency(value, userCurrency)}`;
                         },
                       },
                     },
@@ -349,7 +353,7 @@ function Insights() {
                       },
                       ticks: {
                         color: '#E5E7EB',
-                        callback: (value) => `$${value}`,
+                        callback: (value) => formatCurrency(value, userCurrency),
                       },
                     },
                   },
@@ -389,7 +393,7 @@ function Insights() {
                       },
                       ticks: {
                         color: '#E5E7EB',
-                        callback: (value) => `$${value}`,
+                        callback: (value) => formatCurrency(value, userCurrency),
                       },
                     },
                   },
@@ -426,7 +430,7 @@ function Insights() {
                     </div>
                   </div>
                   <p className="text-red-400 font-medium">
-                    -${Math.abs(transaction.amount).toFixed(2)}
+                    -{formatCurrency(transaction.amount, userCurrency)}
                   </p>
                 </div>
               ))}
