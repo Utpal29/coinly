@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 function CalendarView() {
   const { user } = useAuthContext();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [dailySummaries, setDailySummaries] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -74,13 +75,17 @@ function CalendarView() {
     const summary = dailySummaries[dateString] || { income: 0, expense: 0 };
     const hasIncome = summary.income > 0;
     const hasExpense = summary.expense < 0;
+    const isSelected = selectedDate && isSameDay(day, selectedDate);
 
     return (
       <div
         key={day.toString()}
-        className={`relative p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] border border-white/10 rounded-lg ${
-          isSameMonth(day, currentDate) ? 'bg-white/5' : 'bg-white/5 opacity-50'
-        } ${isToday(day) ? 'ring-2 ring-yellow-400' : ''}`}
+        onClick={() => setSelectedDate(day)}
+        className={`relative p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] border border-white/10 rounded-lg cursor-pointer
+          ${isSameMonth(day, currentDate) ? 'bg-white/5' : 'bg-white/5 opacity-50'}
+          ${isToday(day) ? 'ring-2 ring-yellow-400' : ''}
+          ${isSelected ? 'ring-2 ring-blue-400' : ''}
+          hover:bg-white/10 transition-colors duration-200`}
       >
         <span className={`text-xs sm:text-sm ${isToday(day) ? 'text-yellow-400 font-medium' : 'text-gray-300'}`}>
           {format(day, 'd')}
@@ -102,6 +107,42 @@ function CalendarView() {
             </div>
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderDailySummary = () => {
+    if (!selectedDate) return null;
+    
+    const dateString = selectedDate.toISOString().split('T')[0];
+    const summary = dailySummaries[dateString] || { income: 0, expense: 0 };
+    const netAmount = summary.income + summary.expense;
+
+    return (
+      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+        <h3 className="text-lg font-semibold text-white mb-3">
+          Summary for {format(selectedDate, 'MMMM d, yyyy')}
+        </h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-green-500/10 p-3 rounded-lg">
+            <p className="text-sm text-gray-400">Income</p>
+            <p className="text-lg font-semibold text-green-400">
+              +{summary.income.toFixed(2)}
+            </p>
+          </div>
+          <div className="bg-red-500/10 p-3 rounded-lg">
+            <p className="text-sm text-gray-400">Expense</p>
+            <p className="text-lg font-semibold text-red-400">
+              -{Math.abs(summary.expense).toFixed(2)}
+            </p>
+          </div>
+          <div className={`p-3 rounded-lg ${netAmount >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+            <p className="text-sm text-gray-400">Net</p>
+            <p className={`text-lg font-semibold ${netAmount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {netAmount >= 0 ? '+' : ''}{netAmount.toFixed(2)}
+            </p>
+          </div>
+        </div>
       </div>
     );
   };
@@ -150,6 +191,9 @@ function CalendarView() {
               {days.map(day => renderCalendarDay(day))}
             </div>
           </div>
+
+          {/* Daily Summary */}
+          {renderDailySummary()}
         </div>
       </div>
     </div>
