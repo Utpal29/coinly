@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { exportToCSV } from '../utils/export';
+import { getTransactions } from '../lib/api';
 
 function Profile() {
   const navigate = useNavigate();
@@ -397,6 +399,27 @@ function Profile() {
             <p className="mt-1 text-sm text-gray-400">
               This will be used for all your transactions and reports
             </p>
+          </div>
+
+          <div className="p-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg">
+            <h3 className="text-lg font-medium text-white mb-4">Data Export</h3>
+            <p className="text-gray-300 mb-4">Download all your transaction data in CSV format.</p>
+            <button
+              onClick={async () => {
+                try {
+                  const transactions = await getTransactions(user.id);
+                  exportToCSV(transactions, userData.currency);
+                } catch (error) {
+                  setErrorMessage('Failed to export transactions. Please try again.');
+                }
+              }}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export Transactions
+            </button>
           </div>
 
           <div className="flex justify-end">
