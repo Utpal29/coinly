@@ -4,6 +4,37 @@
 
 Coinly is a modern, user-friendly personal finance tracking application that helps you manage your income and expenses with ease. Built with React and Supabase, it offers a beautiful interface and powerful features to keep your finances organized.
 
+## 📸 Screenshots
+
+### Authentication
+<div align="center">
+  <img src="/public/login.png" alt="Login Page" width="400"/>
+  <img src="/public/signup.png" alt="Signup Page" width="400"/>
+</div>
+
+### Main Features
+<div align="center">
+  <img src="/public/dashboard.png" alt="Dashboard" width="400"/>
+  <img src="/public/insights.png" alt="Insights" width="400"/>
+</div>
+
+### Transaction Management
+<div align="center">
+  <img src="/public/add.png" alt="Add Transaction" width="400"/>
+  <img src="/public/edit.png" alt="Edit Transaction" width="400"/>
+</div>
+
+### Calendar & Profile
+<div align="center">
+  <img src="/public/calendar.png" alt="Calendar View" width="400"/>
+  <img src="/public/profile1.png" alt="Profile Settings" width="400"/>
+</div>
+
+<div align="center">
+  <img src="/public/profile2.png" alt="Profile Preferences" width="400"/>
+  <img src="/public/profile3.png" alt="Profile Security" width="400"/>
+</div>
+
 ## 🌟 Features
 
 - **Dashboard Overview**: Get a quick snapshot of your financial status
