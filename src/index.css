@@ -2,70 +2,164 @@
 @tailwind components;
 @tailwind utilities;
 
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  width: 100%;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --background: 220 14% 10%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 100% / 0.1;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 14% 14%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 48 96% 53%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 100% / 0.1;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 220 14% 20%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 100% / 0.1;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 95%;
+    --border: 0 0% 100% / 0.2;
+    --input: 0 0% 100% / 0.1;
+    --ring: 48 96% 53%;
+    --radius: 0.75rem;
+    --accent-cyan: 190 95% 39%;
   }
-  a:hover {
-    color: #747bff;
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
-  button {
-    background-color: #f9f9f9;
+  body {
+    @apply bg-background text-foreground;
   }
+}
+
+/* ─── Aurora mesh background ─── */
+.app-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(250, 204, 21, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(34, 211, 238, 0.05), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(250, 204, 21, 0.04), transparent 50%),
+    linear-gradient(180deg, hsl(220 14% 8%) 0%, hsl(220 14% 11%) 50%, hsl(220 14% 9%) 100%);
+}
+
+/* Noise texture overlay */
+.app-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+.app-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Glow utilities ─── */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.15), 0 0 60px rgba(250, 204, 21, 0.05);
+}
+.glow-green {
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.15), 0 0 60px rgba(74, 222, 128, 0.05);
+}
+.glow-red {
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.15), 0 0 60px rgba(248, 113, 113, 0.05);
+}
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15), 0 0 60px rgba(34, 211, 238, 0.05);
+}
+
+/* ─── Gradient border (for rounded elements) ─── */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(250, 204, 21, 0.4),
+    rgba(34, 211, 238, 0.2),
+    rgba(250, 204, 21, 0.1)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Shimmer skeleton ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ─── Animation delays ─── */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+.animation-delay-6000 {
+  animation-delay: 6s;
+}
+.animation-delay-8000 {
+  animation-delay: 8s;
+}
+
+/* ─── Stagger animation ─── */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: slideUp 0.35s ease-out both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+/* ─── CTA gradient shimmer ─── */
+.btn-shimmer {
+  background-size: 200% 100%;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+/* ─── Login grid pattern ─── */
+.login-grid {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0px, transparent 1px, transparent 60px);
 }
