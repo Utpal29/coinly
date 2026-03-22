@@ -90,3 +90,7 @@ desktop.ini
 .docusaurus/
 .storybook-out/
 storybook-static/
+
+.gitignore
+
+.claude
